@@ -8,6 +8,7 @@ Setup:  pip install vaderSentiment spacy pandas
 Run:    python day1_pipeline_test.py                      (uses built-in samples)
         python day1_pipeline_test.py data/books_sample_20.csv
 """
+import html
 import re
 import sys
 import pandas as pd
@@ -18,14 +19,18 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 # 1. Aspect vocabulary (start small, grow it after reading output)
 # ---------------------------------------------------------------
 ASPECTS = {
-    "plot":      ["plot", "story", "storyline", "twist", "twists", "premise", "narrative", "mystery", "clue"],
+    "plot":      ["plot", "story", "storyline", "twist", "twists", "premise", "narrative", "mystery", "clue",
+                  "kept me guessing"],
     "characters": ["character", "characters", "protagonist", "hero", "heroine",
                    "villain", "cast", "development"],
     "pacing":    ["pacing", "pace", "paced", "slow", "dragged", "drags", "fast-paced",
-                  "rushed", "boring", "page-turner", "chapters", "middle"],
+                  "rushed", "boring", "page-turner", "chapters", "middle", "put down",
+                  "what happens next", "quick read"],
     "writing_style": ["writing", "prose", "style", "written", "language", "dialogue", "voice",
-                      "descriptions", "sentences", "narration"],
-    "ending":    ["ending", "ended", "finale", "conclusion", "climax", "epilogue", "final chapter"],
+                      "descriptions", "sentences", "narration", "grammar", "typo", "typos",
+                      "accent", "accents", "proofread", "proofreading", "technique"],
+    "ending":    ["end", "ending", "ended", "finale", "conclusion", "climax", "epilogue",
+                  "final chapter"],
 }
 
 # ---------------------------------------------------------------
@@ -57,6 +62,16 @@ vader = SentimentIntensityAnalyzer()
 
 # Split mixed sentences into clauses so "X was great, but Y dragged" becomes 2 pieces.
 CLAUSE_SPLIT = re.compile(r"\s*(?:;|,?\s+but\s+|,?\s+however,?\s+|,?\s+though\s*$|\s+yet\s+)", re.I)
+HTML_TAG = re.compile(r"<[^>]+>")
+PACING_OVER_PLOT = re.compile(
+    r"\b(?:story|plot|narrative)\b.{0,25}\b(?:dragged|drags|slow|rushed|boring)\b",
+    re.I,
+)
+READ_TO_END = re.compile(r"\b(?:read|reading).{0,12}\b(?:to|until)\s+the\s+end\b", re.I)
+
+
+def prepare_text(text: str) -> str:
+    return HTML_TAG.sub(" ", html.unescape(text)).replace("\xa0", " ")
 
 
 def split_clauses(sentence: str):
@@ -66,11 +81,31 @@ def split_clauses(sentence: str):
 def find_aspects(text: str):
     normalized = text.lower()
     tokens = set(re.findall(r"[a-z\-]+", normalized))
-    return [
+    aspects = [
         aspect
         for aspect, keywords in ASPECTS.items()
-        if any(keyword in tokens if " " not in keyword else keyword in normalized for keyword in keywords)
+        if any(
+            keyword in tokens if " " not in keyword else keyword in normalized
+            for keyword in keywords
+        )
     ]
+    if "plot" in aspects and re.search(r"\bstory books?\b", normalized):
+        plot_keywords = set(ASPECTS["plot"]) - {"story"}
+        if not any(
+            keyword in tokens if " " not in keyword else keyword in normalized
+            for keyword in plot_keywords
+        ):
+            aspects.remove("plot")
+    if "plot" in aspects and "pacing" in aspects and PACING_OVER_PLOT.search(normalized):
+        aspects.remove("plot")
+    if "ending" in aspects and READ_TO_END.search(normalized):
+        strong_ending_terms = set(ASPECTS["ending"]) - {"end"}
+        if not any(
+            keyword in tokens if " " not in keyword else keyword in normalized
+            for keyword in strong_ending_terms
+        ):
+            aspects.remove("ending")
+    return aspects
 
 
 def vader_label(compound: float, thr: float = 0.05) -> str:
@@ -112,7 +147,7 @@ def run(reviews):
     for review in reviews:
         review_id = review["review_id"]
         book_id = review["book_id"]
-        text = review["raw_text"]
+        text = prepare_text(review["raw_text"])
         rating = review["rating"]
         whole = vader.polarity_scores(text)["compound"]
         for sent in (s.text.strip() for s in nlp(text).sents):
