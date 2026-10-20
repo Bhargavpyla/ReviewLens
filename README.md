@@ -6,13 +6,14 @@ The authoritative workflow is `ReviewLens_Complete_Plan.md`. Work stops for revi
 
 ## Current Status
 
-Steps 1 and 2 are complete. The project contains:
+Steps 1 through 3 are complete. The project contains:
 - A deterministic 20,000-review master sample and 20-review preview.
 - Reproducible book-level splits (train 70%, dev 15%, test 15%) with 0 book leakage and all 20 preview books in dev.
 - Full dataset pipeline processing accounting for 100% of input reviews (101,241 clause-aspect records across 20,000 reviews).
 - 300 blind test annotation units sampled independently of keywords/predictions, capped at <=2 units/book across 266 test books.
 - AI reference annotations (`ai_generated_reference`, `human_verified=false`) with exact evidence spans, rationales, and consistency review.
-- Step 3 has not started.
+- Locked keyword-aspect and VADER evaluation results, including three-class and positive/negative-only metrics, confusion matrices, matched aspect-text versus whole-review comparison, and saved errors.
+- Step 4 has not started.
 
 ## Setup
 
@@ -79,6 +80,39 @@ Run the Step 2 comprehensive validation suite:
 - `outputs/step2_reference_coverage.csv`: coverage breakdown of reference annotations.
 - `outputs/step2_validation_report.json` & `outputs/step2_validation_summary.csv`: automated test results showing 100% checks passing.
 
+## Step 3 Command
+
+Validate Step 2 and evaluate the locked keyword and VADER baseline:
+
+```powershell
+.\.venv\Scripts\python.exe src\evaluate_vader.py
+```
+
+## Step 3 Results
+
+These numbers measure agreement with AI-generated reference labels, not human ground-truth accuracy.
+
+- All 23 automated checks passed: zero train/development/test book overlap, stable unique identifiers, evidence contained in source reviews, valid schemas and provenance, test-only evaluation, no training rows, reconciled supports, and identical comparison rows.
+- Aspect detection on 300 units: micro precision/recall/F1 `0.7059`/`0.8571`/`0.7742`; macro precision/recall/F1 `0.6693`/`0.9029`/`0.7504`; exact-set accuracy `0.9367`. There were 15 false-positive aspect labels and 6 missed aspect labels.
+- False detections occurred on 11 of 262 `none` units; `none` specificity is `0.9580`. No uncertain aspect units were excluded.
+- Joint aspect-matched three-class sentiment on 42 aspect pairs: aspect-text VADER accuracy `0.4762`, macro-F1 `0.5111`; whole-review VADER accuracy `0.3095`, macro-F1 `0.2884`.
+- On the identical 42 rows, aspect text outperformed whole-review text by `0.2227` macro-F1 and `0.1667` accuracy. This measured result supports the claim only for this small AI-reference set.
+- Positive/negative-only sentiment on 22 pairs: aspect-text accuracy `0.6364`, macro-F1 `0.7171`; whole-review accuracy `0.5909`, macro-F1 `0.6299`. These binary results are kept separate for later SVM and DistilBERT comparison.
+- Sentiment scoring excluded 262 `none` units with blank sentiment, 0 uncertain-aspect units, 0 uncertain-sentiment pairs, and 0 blank sentiment pairs among aspect-bearing units. The binary subset additionally excluded 20 neutral pairs.
+- `src/evaluate_vader.py` corrects an evaluation bookkeeping bug in the provisional evaluator: a sentiment prediction now counts only when the correct aspect was detected in the same evidence unit. Six missed aspects therefore appear as `missing_aspect` sentiment failures. No keywords, splitting rules, VADER thresholds, labels, or test examples changed.
+
+## Step 3 Outputs
+
+- `outputs/step3/validation_report.json` and `outputs/step3/validation_checks.csv`: machine-readable integrity, leakage, provenance, and reconciliation checks.
+- `outputs/step3/overall_metrics.csv`: headline aspect, sentiment, and exclusion counts.
+- `outputs/step3/aspect_metrics.csv`: per-aspect precision, recall, F1, support, and error counts.
+- `outputs/step3/sentiment_three_class_metrics.csv` and `outputs/step3/sentiment_binary_metrics.csv`: per-class metrics for both text scopes.
+- `outputs/step3/sentiment_three_class_confusion.csv` and `outputs/step3/sentiment_binary_confusion.csv`: confusion matrices including `missing_aspect` predictions.
+- `outputs/step3/scope_comparison.csv`: paired aspect-text versus whole-review comparisons on identical reference rows.
+- `outputs/step3/row_predictions.csv`: row-level aspect and sentiment predictions with correctness indicators.
+- `outputs/step3/error_examples.csv` and `outputs/step3/error_summary.csv`: false detections, missed aspects, incorrect sentiment, negation, neutral recap, sarcasm, and clause-context categories. Zero observed sarcasm examples are disclosed rather than invented.
+- Earlier root-level `outputs/step3_*.csv` files are provisional and superseded by the canonical `outputs/step3/` artifacts.
+
 ## Sampling & Splitting Methodology
 
 - **Sampling**: Amazon Reviews 2023 Books (20.1 GB) was streamed using deterministic random byte ranges to produce `data/books_reviews_20000.csv`.
@@ -103,10 +137,20 @@ ReviewLens/
 |   |-- full_pipeline_summary.csv
 |   |-- step2_reference_coverage.csv
 |   |-- step2_validation_report.json
-|   `-- step2_validation_summary.csv
+|   |-- step2_validation_summary.csv
+|   `-- step3/
+|       |-- validation_report.json
+|       |-- overall_metrics.csv
+|       |-- aspect_metrics.csv
+|       |-- sentiment_three_class_metrics.csv
+|       |-- sentiment_binary_metrics.csv
+|       |-- scope_comparison.csv
+|       |-- row_predictions.csv
+|       `-- error_examples.csv
 |-- src/
 |   |-- load_and_sample.py
 |   |-- reference_annotator.py
+|   |-- evaluate_vader.py
 |   |-- run_pipeline.py
 |   |-- select_annotation_units.py
 |   `-- split_data.py
@@ -120,6 +164,8 @@ ReviewLens/
 ## Honest Limitations
 
 - **AI-Generated Reference Labels**: The 300 reference annotations are generated by the agent (`annotation_source="ai_generated_reference"`, `human_verified=false`) rather than an independent human panel. Any scores evaluated against them represent provisional agreement rather than ground-truth human accuracy.
-- **Binary vs. 3-Class Evaluation**: Subsequent models trained on weak labels (stars 1-2 vs 4-5) drop 3-star reviews and will evaluate on the positive/negative reference subset. Neutral coverage and separate three-class VADER agreement will be reported explicitly.
+- **Binary vs. 3-Class Evaluation**: Subsequent models trained on weak labels (stars 1-2 vs 4-5) drop 3-star reviews and must compare against the saved 22-pair positive/negative subset. This remains separate from the 42-pair three-class VADER result.
 - **Class Imbalance in Natural Text**: Random sampling from real reviews shows ~87% of text units do not discuss the five supported book aspects (`aspect="none"`). Factual ending recaps and factual plot descriptions are assigned `neutral`.
-
+- **Reference Dependence**: The rule-assisted AI reference labels overlap conceptually with the keyword baseline, so the reported agreement may overstate performance relative to independent human annotation.
+- **Sparse Aspect Support**: Pacing has only 2 reference examples, and the full three-class sentiment evaluation contains only 42 aspect pairs. Per-aspect and per-class values are therefore unstable.
+- **Joint Scoring**: Six reference aspects were missed. Their sentiment predictions are recorded as `missing_aspect`, so sentiment scores evaluate the usable two-stage pipeline rather than VADER in isolation.
