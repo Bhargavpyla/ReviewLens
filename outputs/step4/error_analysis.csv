@@ -1,0 +1,4 @@
+unit_id,sentence_id,review_id,book_id,unit_text,aspect,sentiment,pred_svm_aspect,pred_svm_context,evidence_span,rationale
+unit_013,review_05351_s02,review_05351,B002KQ6BT6,And did this book need drones which often appeared,plot,negative,positive,positive,did this book need drones,Critical rhetorical question questioning the necessity of a plot device.
+unit_029,review_11906_s03,review_11906,1442499214,What I didn't like about the book was that it told two stories in parallel - the one of the boy and the one of the wolf and raven that were compelling up to the end,ending,negative,positive,positive,compelling,Negation of positive quality conveys negative assessment.
+unit_202,review_09020_s03,review_09020,B0756F453K,Not entirely convinced that the Marvel approach to character deaths is a good development,characters,negative,positive,positive,character ... good,Negation of positive quality conveys negative assessment.

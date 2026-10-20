@@ -2,7 +2,7 @@
 
 `ReviewLens_Complete_Plan.md` is the authoritative plan. This brief summarizes the fixed constraints. If the two files conflict, follow the complete plan.
 
-**Current status (2026-10-21):** Steps 1 through 3 are complete. Step 4 has not started.
+**Current status (2026-10-21):** Steps 1 through 4 are complete. Step 5 has not started.
 
 Aspect-based sentiment analysis on Amazon book reviews. Solo student project (ML Lab, MIT Manipal), limited time. Work inside the existing ReviewLens folder and build on the existing files; do not rewrite from scratch.
 
@@ -14,6 +14,7 @@ Aspect-based sentiment analysis on Amazon book reviews. Solo student project (ML
 - `src/reference_annotator.py`: AI reference annotation engine with factual ending neutral rules and consistency review
 - `src/validate_step2.py`: comprehensive verification suite for splits, IDs, and annotations
 - `src/evaluate_vader.py`: canonical locked Step 3 multilabel aspect and joint aspect-matched VADER evaluator
+- `src/train_svm.py`: Step 4 TF-IDF + LinearSVC model trained on weak labels and evaluated on reference benchmark
 - `day1_pipeline_test.py`: review -> sentences (spaCy sentencizer) -> clauses -> keyword aspects -> VADER sentiment (supports preview and full run)
 - `data/synthetic_reviews_20.csv` and `data/synthetic_expected_labels.csv`: development fixtures only
 - `eval_synthetic.py` is not currently present; add it later only if the synthetic regression test is restored
@@ -56,12 +57,13 @@ Note: "story" and "plot" are the same aspect (`plot`). Sentiment labels are `pos
 2. [x] **Full-sample run & reference annotation.** Full 20k reviews processed into train/dev/test splits with 0 book leakage; all 20 preview books in dev. Exported 300 test units with a 2-unit cap per book. Generated prediction-free blind file and AI-generated reference benchmark (`ai_generated_reference`, `human_verified=false`) with evidence spans and consistency review.
 
 3. [x] **Evaluation script.** All 23 validation checks passed with zero split or training leakage. Aspect detection macro-F1 is 0.7504. Joint aspect-matched three-class VADER macro-F1 is 0.5111 on aspect text and 0.2884 on whole reviews; binary aspect-text macro-F1 is 0.7171 on 22 positive/negative pairs. Six missed aspects count as sentiment failures. Canonical outputs are under `outputs/step3/`. Results measure agreement with AI-generated, non-human-verified references.
-4. [ ] **TF-IDF + SVM** (`class_weight='balanced'`), trained on weak labels, evaluated on the saved reference benchmark.
+4. [x] **TF-IDF + SVM.** Trained LinearSVC (`class_weight='balanced'`, seed 42) on 59,818 unique weak-labeled train clauses from train books. Evaluated on binary reference benchmark (14 positive, 6 negative). Achieved **0.7849 Macro-F1** and **85.0% accuracy**, outperforming VADER (0.7171 Macro-F1) by +0.0678. Canonical outputs under `outputs/step4/` and `models/tfidf_svm_sentiment.joblib`.
 5. [ ] **Topic models.** LDA (choose topic count by coherence, c_v, 5-10 topics) on cleaned text; BERTopic with default settings on raw sentences. Output top words per topic to a CSV for manual naming. Visualize LDA with pyLDAvis.
 6. [ ] **DistilBERT** fine-tuned on a 5-10k sentence subset, as a Colab-ready notebook. Same train/test split and same reference benchmark.
 7. [ ] **Streamlit app**: one book dropdown, one aspect-sentiment bar chart, example sentences for each bar.
 
 If time runs out, steps 1-4 already make a complete project. Cut from the bottom, not the top.
+
 
 ## Reproducibility
 

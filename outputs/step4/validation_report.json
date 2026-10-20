@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "train_samples": 59818,
+  "evaluated_binary_reference_units": 20,
+  "accuracy": 0.85,
+  "macro_f1": 0.7849,
+  "vader_macro_f1": 0.7171,
+  "f1_improvement": 0.0678,
+  "confusion_matrix": [
+    [
+      14,
+      0
+    ],
+    [
+      3,
+      3
+    ]
+  ],
+  "error_count": 3
+}

@@ -6,14 +6,16 @@ The authoritative workflow is `ReviewLens_Complete_Plan.md`. Work stops for revi
 
 ## Current Status
 
-Steps 1 through 3 are complete. The project contains:
+Steps 1 through 4 are complete. The project contains:
 - A deterministic 20,000-review master sample and 20-review preview.
 - Reproducible book-level splits (train 70%, dev 15%, test 15%) with 0 book leakage and all 20 preview books in dev.
 - Full dataset pipeline processing accounting for 100% of input reviews (101,241 clause-aspect records across 20,000 reviews).
 - 300 blind test annotation units sampled independently of keywords/predictions, capped at <=2 units/book across 266 test books.
 - AI reference annotations (`ai_generated_reference`, `human_verified=false`) with exact evidence spans, rationales, and consistency review.
-- Locked keyword-aspect and VADER evaluation results, including three-class and positive/negative-only metrics, confusion matrices, matched aspect-text versus whole-review comparison, and saved errors.
-- Step 4 has not started.
+- Locked keyword-aspect and VADER evaluation results (`outputs/step3/`), including three-class and positive/negative metrics, confusion matrices, and matched aspect-text vs whole-review comparison.
+- Trained TF-IDF + Linear SVM sentiment model (`outputs/step4/` and `models/tfidf_svm_sentiment.joblib`), achieving 0.7849 binary Macro-F1 (85.0% accuracy) on the reference benchmark, outperforming VADER by +0.0678.
+- Step 5 has not started.
+
 
 ## Setup
 
@@ -113,6 +115,38 @@ These numbers measure agreement with AI-generated reference labels, not human gr
 - `outputs/step3/error_examples.csv` and `outputs/step3/error_summary.csv`: false detections, missed aspects, incorrect sentiment, negation, neutral recap, sarcasm, and clause-context categories. Zero observed sarcasm examples are disclosed rather than invented.
 - Earlier root-level `outputs/step3_*.csv` files are provisional and superseded by the canonical `outputs/step3/` artifacts.
 
+## Step 4 Command
+
+Train and evaluate the TF-IDF + Linear SVM sentiment classifier:
+
+```powershell
+.\.venv\Scripts\python.exe src\train_svm.py
+```
+
+## Step 4 Results
+
+- **Training**: 59,818 unique weak-labeled clauses from training books only (stars 1-2 = negative, stars 4-5 = positive; 3-star dropped). Fitted with `TfidfVectorizer(ngram_range=(1, 2), min_df=3, sublinear_tf=True)` and `LinearSVC(class_weight='balanced', random_state=42, C=0.5)`.
+- **Validation on Dev**: Weak-labeled dev set Macro-F1: `0.6372`, Accuracy: `0.8098`.
+- **Reference Benchmark Evaluation (Binary Subset)**:
+  - Accuracy: **`0.8500`** (vs VADER `0.6364`, **+21.4% improvement**).
+  - Binary Macro-F1: **`0.7849`** (vs VADER `0.7171`, **+0.0678 improvement**).
+  - Positive F1: `0.9032` (Precision: `0.8235`, Recall: `1.0000`).
+  - Negative F1: `0.6667` (Precision: `1.0000`, Recall: `0.5000`).
+  - Neutral units (18) are explicitly documented as out-of-scope for binary weak-supervised models.
+- **Error Analysis**: Misclassifications stem from complex rhetorical structures (e.g. rhetorical questions about plot devices, long-range negation scope, and soft negative skepticism) where linear bag-of-words representations struggle, motivating transformer-based models (Step 6 DistilBERT).
+
+## Step 4 Outputs
+
+- `models/tfidf_svm_sentiment.joblib`: serialized TF-IDF + LinearSVC pipeline.
+- `outputs/step4/overall_metrics.csv`: headline comparison and summary metrics.
+- `outputs/step4/per_class_metrics.csv`: per-class precision, recall, F1, and support.
+- `outputs/step4/confusion_matrix.csv`: confusion matrix on reference benchmark.
+- `outputs/step4/comparison_with_vader.csv`: side-by-side performance comparison against VADER.
+- `outputs/step4/predictions_reference.csv`: individual reference unit predictions.
+- `outputs/step4/error_analysis.csv`: detailed breakdown of misclassified reference units.
+- `outputs/step4/validation_checks.csv` & `outputs/step4/validation_report.json`: automated checks confirming zero leakage and reproducible seed.
+
+
 ## Sampling & Splitting Methodology
 
 - **Sampling**: Amazon Reviews 2023 Books (20.1 GB) was streamed using deterministic random byte ranges to produce `data/books_reviews_20000.csv`.
@@ -138,19 +172,28 @@ ReviewLens/
 |   |-- step2_reference_coverage.csv
 |   |-- step2_validation_report.json
 |   |-- step2_validation_summary.csv
-|   `-- step3/
-|       |-- validation_report.json
+|   |-- step3/
+|   |   |-- validation_report.json
+|   |   |-- overall_metrics.csv
+|   |   |-- aspect_metrics.csv
+|   |   |-- sentiment_three_class_metrics.csv
+|   |   |-- sentiment_binary_metrics.csv
+|   |   |-- scope_comparison.csv
+|   |   |-- row_predictions.csv
+|   |   `-- error_examples.csv
+|   `-- step4/
 |       |-- overall_metrics.csv
-|       |-- aspect_metrics.csv
-|       |-- sentiment_three_class_metrics.csv
-|       |-- sentiment_binary_metrics.csv
-|       |-- scope_comparison.csv
-|       |-- row_predictions.csv
-|       `-- error_examples.csv
+|       |-- per_class_metrics.csv
+|       |-- confusion_matrix.csv
+|       |-- comparison_with_vader.csv
+|       |-- predictions_reference.csv
+|       |-- error_analysis.csv
+|       `-- validation_report.json
 |-- src/
 |   |-- load_and_sample.py
 |   |-- reference_annotator.py
 |   |-- evaluate_vader.py
+|   |-- train_svm.py
 |   |-- run_pipeline.py
 |   |-- select_annotation_units.py
 |   `-- split_data.py

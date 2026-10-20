@@ -1,0 +1,10 @@
+metric,value
+evaluated_units,20.0
+accuracy_aspect_text,0.85
+macro_f1_aspect_text,0.7849
+accuracy_context_text,0.85
+macro_f1_context_text,0.7849
+vader_macro_f1,0.7171
+f1_delta_over_vader,0.0678
+neutral_units_excluded_from_binary,18.0
+none_units_excluded,262.0

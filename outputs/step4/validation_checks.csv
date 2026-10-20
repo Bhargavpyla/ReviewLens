@@ -1,0 +1,6 @@
+check,status,detail
+zero_test_leakage_in_training,PASS,0 test books or reviews used in training
+zero_reference_tuning,PASS,Model trained solely on weak labels from train split
+reproducible_random_seed,PASS,LinearSVC random_state=42
+binary_evaluation_completeness,PASS,All 20 binary reference units evaluated
+neutral_explicit_reporting,PASS,All 18 neutral units explicitly documented as out-of-scope for binary SVM

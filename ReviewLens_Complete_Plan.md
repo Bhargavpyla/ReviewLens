@@ -4,7 +4,7 @@ Two-stage NLP pipeline on Amazon book reviews: find aspects (plot, pacing, chara
 
 ## Current status
 
-Steps 1 through 3 are complete as of 2026-10-21. The locked baseline was evaluated against 300 AI-generated reference units (`human_verified=false`). Aspect detection macro-F1 is 0.7504. Joint aspect-matched three-class VADER macro-F1 is 0.5111 on isolated aspect text versus 0.2884 on whole reviews; the measured difference is +0.2227. The separate positive/negative-only aspect-text macro-F1 is 0.7171 on 22 pairs. These are agreement scores against AI-generated references, not human-labelled gold accuracy. Step 4 has not started.
+Steps 1 through 4 are complete as of 2026-10-21. The locked baseline and TF-IDF + SVM were evaluated against the 300 AI-generated reference units (`human_verified=false`). Aspect detection macro-F1 is 0.7504. In sentiment classification, LinearSVC (`class_weight='balanced'`) trained on 59,818 unique weak-labeled train clauses achieved **0.7849 binary Macro-F1** (85.0% accuracy) on the shared reference subset, outperforming VADER (0.7171 binary Macro-F1, 63.6% accuracy) by +0.0678. Step 5 has not started.
 
 ---
 
@@ -74,7 +74,7 @@ The finalized rules are in `annotation_rules.md`. The initial file was empty and
 1. [x] **Loader and sampler:** Amazon Reviews 2023, Books category, following the official data-loading guide. Stream, do not download everything. Random sample about 20k; keep text, rating, book id; drop empty and duplicate rows; report counts, rating distribution, reviews per book. Run the existing pipeline on 20 reviews and output a CSV.
 2. [x] **Full run and reference annotation:** run on the full 20,000 reviews with strict book-level splits (0 leakage; preview books in dev). Exported 300 blind test units (capped at max 2 units/book). Generated AI reference benchmark (`ai_generated_reference`, `human_verified=false`) with evidence spans and consistency review.
 3. [x] **Evaluation script:** `src/evaluate_vader.py` passed 23 integrity and reconciliation checks; evaluated multilabel aspect detection plus joint aspect-matched three-class and binary VADER agreement; saved per-class metrics, confusion matrices, exclusions, row predictions, errors, and identical-row text-scope comparisons under `outputs/step3/`. No test-driven tuning occurred.
-4. [ ] **TF-IDF + SVM:** `class_weight='balanced'`, trained on weak labels, tested on the saved reference benchmark.
+4. [x] **TF-IDF + SVM:** `class_weight='balanced'`, trained on 59,818 unique weak-labeled train clauses (stars 1-2 vs 4-5) from train books with strict book-level split isolation. Tested on the saved reference benchmark binary subset: achieved 0.7849 Macro-F1 (85.0% accuracy), outperforming VADER (0.7171 Macro-F1, 63.6% accuracy) by +0.0678 (+21.4% accuracy). Saved under `outputs/step4/` and `models/tfidf_svm_sentiment.joblib`.
 5. [ ] **Topic models:** LDA (5-10 topics, choose by c_v coherence, cleaned text) and BERTopic with defaults on raw sentences. Export top words per topic to CSV for manual naming. pyLDAvis for LDA.
 6. [ ] **DistilBERT:** fine-tune on a 5-10k sentence subset, 1-2 epochs, Colab-ready notebook, same split and reference benchmark.
 7. [ ] **Streamlit:** one book dropdown, one aspect-sentiment bar chart, example sentences per bar, number of reviews analysed.
