@@ -1,0 +1,10 @@
+metric,value
+file_size,20121186727
+chunks,27
+bytes_requested,28311552
+parsed_nonempty,43213
+empty_dropped,21
+invalid_dropped,0
+duplicates_dropped,563
+final_sample,20000
+unique_books,17549
