@@ -1,0 +1,7 @@
+task,scope,eligible_rows,accuracy,macro_f1,identical_reference_rows
+three_class,aspect_text,42,0.47619,0.511103,True
+three_class,whole_review,42,0.309524,0.288372,True
+three_class,aspect_text_minus_whole_review,42,0.166666,0.222731,True
+binary_positive_negative,aspect_text,22,0.636364,0.717143,True
+binary_positive_negative,whole_review,22,0.590909,0.62987,True
+binary_positive_negative,aspect_text_minus_whole_review,22,0.045455,0.087273,True

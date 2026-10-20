@@ -1,0 +1,24 @@
+check,status,detail
+Book splits do not overlap,PASS,"{'train_dev': 0, 'train_test': 0, 'dev_test': 0}"
+Book splits cover the master data,PASS,"master_books=17549, split_books=17549"
+Reference schema is complete,PASS,missing=[]
+Evaluation identifiers are unique,PASS,"rows=300, unique_units=300, unique_clauses=300"
+Review sentence and clause identifiers are stable,PASS,all IDs match their documented hierarchy
+Blind and reference source fields match,PASS,units=300
+Reference units match locked pipeline units,PASS,matched_clauses=300
+Sentence and clause text belongs to source review,PASS,failures=[]
+Evidence text belongs to source review,PASS,failures=[]
+Aspect label schema is valid,PASS,invalid=[]
+Sentiment label schema is valid,PASS,invalid=[]
+Aspect sentiment pairs are valid,PASS,failures=[]
+Annotations are complete,PASS,incomplete_rows=0
+Reference provenance is AI generated and unverified,PASS,annotation_source=ai_generated_reference; human_verified=false
+Evaluation rows are test-only,PASS,"reference_books=266, pipeline_splits=['test']"
+Evaluation uses no training rows,PASS,training_book_overlap=0
+Blind file contains no labels or predictions,PASS,forbidden=[]
+Saved VADER labels use the locked threshold,PASS,thresholds remain +0.05 and -0.05
+Aspect supports reconcile,PASS,"support_sum=42, reference_pairs=42"
+Sentiment supports reconcile,PASS,eligible_pairs=42
+Binary supports reconcile,PASS,eligible_binary_pairs=22
+Scope comparisons use identical eligible rows,PASS,"three_class_rows=42, binary_rows=22"
+Sentiment pair identifiers are unique,PASS,"pairs=42, unique=42"

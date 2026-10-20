@@ -1,0 +1,7 @@
+task,scope,actual_label,predicted_positive,predicted_negative,predicted_neutral,predicted_missing_aspect
+three_class,aspect_text,positive,9,2,0,4
+three_class,aspect_text,negative,1,5,0,1
+three_class,aspect_text,neutral,8,5,6,1
+three_class,whole_review,positive,10,1,0,4
+three_class,whole_review,negative,3,3,0,1
+three_class,whole_review,neutral,15,4,0,1

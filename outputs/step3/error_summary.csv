@@ -1,0 +1,8 @@
+error_type,example_count
+false_aspect_detection,15
+missed_aspect,6
+incorrect_sentiment,51
+sarcasm_error,0
+negation_error,2
+neutral_recap_error,7
+clause_context_failure,5

@@ -1,0 +1,139 @@
+{
+  "checks": [
+    {
+      "check": "Book splits do not overlap",
+      "detail": "{'train_dev': 0, 'train_test': 0, 'dev_test': 0}",
+      "status": "PASS"
+    },
+    {
+      "check": "Book splits cover the master data",
+      "detail": "master_books=17549, split_books=17549",
+      "status": "PASS"
+    },
+    {
+      "check": "Reference schema is complete",
+      "detail": "missing=[]",
+      "status": "PASS"
+    },
+    {
+      "check": "Evaluation identifiers are unique",
+      "detail": "rows=300, unique_units=300, unique_clauses=300",
+      "status": "PASS"
+    },
+    {
+      "check": "Review sentence and clause identifiers are stable",
+      "detail": "all IDs match their documented hierarchy",
+      "status": "PASS"
+    },
+    {
+      "check": "Blind and reference source fields match",
+      "detail": "units=300",
+      "status": "PASS"
+    },
+    {
+      "check": "Reference units match locked pipeline units",
+      "detail": "matched_clauses=300",
+      "status": "PASS"
+    },
+    {
+      "check": "Sentence and clause text belongs to source review",
+      "detail": "failures=[]",
+      "status": "PASS"
+    },
+    {
+      "check": "Evidence text belongs to source review",
+      "detail": "failures=[]",
+      "status": "PASS"
+    },
+    {
+      "check": "Aspect label schema is valid",
+      "detail": "invalid=[]",
+      "status": "PASS"
+    },
+    {
+      "check": "Sentiment label schema is valid",
+      "detail": "invalid=[]",
+      "status": "PASS"
+    },
+    {
+      "check": "Aspect sentiment pairs are valid",
+      "detail": "failures=[]",
+      "status": "PASS"
+    },
+    {
+      "check": "Annotations are complete",
+      "detail": "incomplete_rows=0",
+      "status": "PASS"
+    },
+    {
+      "check": "Reference provenance is AI generated and unverified",
+      "detail": "annotation_source=ai_generated_reference; human_verified=false",
+      "status": "PASS"
+    },
+    {
+      "check": "Evaluation rows are test-only",
+      "detail": "reference_books=266, pipeline_splits=['test']",
+      "status": "PASS"
+    },
+    {
+      "check": "Evaluation uses no training rows",
+      "detail": "training_book_overlap=0",
+      "status": "PASS"
+    },
+    {
+      "check": "Blind file contains no labels or predictions",
+      "detail": "forbidden=[]",
+      "status": "PASS"
+    },
+    {
+      "check": "Saved VADER labels use the locked threshold",
+      "detail": "thresholds remain +0.05 and -0.05",
+      "status": "PASS"
+    },
+    {
+      "check": "Aspect supports reconcile",
+      "detail": "support_sum=42, reference_pairs=42",
+      "status": "PASS"
+    },
+    {
+      "check": "Sentiment supports reconcile",
+      "detail": "eligible_pairs=42",
+      "status": "PASS"
+    },
+    {
+      "check": "Binary supports reconcile",
+      "detail": "eligible_binary_pairs=22",
+      "status": "PASS"
+    },
+    {
+      "check": "Scope comparisons use identical eligible rows",
+      "detail": "three_class_rows=42, binary_rows=22",
+      "status": "PASS"
+    },
+    {
+      "check": "Sentiment pair identifiers are unique",
+      "detail": "pairs=42, unique=42",
+      "status": "PASS"
+    }
+  ],
+  "human_verified": false,
+  "interpretation": "Metrics measure agreement with AI-generated reference annotations, not human-labelled gold accuracy.",
+  "locked_test_policy": "No keywords, clause splitting, VADER thresholds, labels, or test examples were changed.",
+  "reference_provenance": "ai_generated_reference",
+  "status": "PASS",
+  "summary": {
+    "blank_sentiment_pairs": 0,
+    "blank_sentiment_units": 262,
+    "development_books": 2632,
+    "evaluation_training_rows": 0,
+    "neutral_pairs_excluded_from_binary": 20,
+    "none_units": 262,
+    "reference_books": 266,
+    "reference_rows": 300,
+    "split_overlap_count": 0,
+    "test_books": 2632,
+    "train_books": 12285,
+    "uncertain_aspect_units": 0,
+    "uncertain_sentiment_pairs": 0
+  }
+}

@@ -1,0 +1,6 @@
+aspect,precision,recall,f1,support,true_positive,false_positive,false_negative,true_negative,false_positive_on_none
+plot,0.769231,0.714286,0.740741,14,10,3,4,283,3
+characters,0.818182,0.9,0.857143,10,9,2,1,288,1
+pacing,0.4,1.0,0.571429,2,2,3,0,295,2
+writing_style,0.692308,0.9,0.782609,10,9,4,1,286,3
+ending,0.666667,1.0,0.8,6,6,3,0,291,3

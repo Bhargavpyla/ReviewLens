@@ -1,0 +1,7 @@
+task,scope,class,precision,recall,f1,support,predicted_count,true_positive,false_positive,false_negative
+three_class,aspect_text,positive,0.5,0.6,0.545455,15,18,9,9,6
+three_class,aspect_text,negative,0.416667,0.714286,0.526316,7,12,5,7,2
+three_class,aspect_text,neutral,1.0,0.3,0.461538,20,6,6,0,14
+three_class,whole_review,positive,0.357143,0.666667,0.465116,15,28,10,18,5
+three_class,whole_review,negative,0.375,0.428571,0.4,7,8,3,5,4
+three_class,whole_review,neutral,0.0,0.0,0.0,20,0,0,0,20

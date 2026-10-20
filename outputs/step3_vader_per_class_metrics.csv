@@ -1,0 +1,7 @@
+scope,class,precision,recall,f1,support,predicted_count
+aspect_text_vader_3class,positive,0.590909,0.866667,0.702703,15,22
+aspect_text_vader_3class,negative,0.384615,0.714286,0.5,7,13
+aspect_text_vader_3class,neutral,0.857143,0.3,0.444444,20,7
+whole_review_vader_3class,positive,0.424242,0.933333,0.583333,15,33
+whole_review_vader_3class,negative,0.333333,0.428571,0.375,7,9
+whole_review_vader_3class,neutral,0.0,0.0,0.0,20,0

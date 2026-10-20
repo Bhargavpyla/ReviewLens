@@ -41,8 +41,6 @@ outputs/*.txt
 outputs/*.log
 outputs/*full*.csv
 outputs/full_pipeline_output.csv
-outputs/step3
-outputs/step3*
 
 # Jupyter Notebooks
 .ipynb_checkpoints/

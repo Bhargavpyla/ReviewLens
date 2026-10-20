@@ -1,0 +1,12 @@
+check,status,detail
+Book split overlap,PASS,overlap_count=0
+Master book split coverage,PASS,"master_books=17549, split_books=17549"
+Reference schema,PASS,required_columns_present=True
+Reference row completeness,PASS,"rows=300, unique_units=300, unique_clauses=300"
+Blind file contains no labels or predictions,PASS,forbidden_columns_present=[]
+Blind/reference identity,PASS,all reference source fields match the prediction-free blind file
+Reference books restricted to test,PASS,"reference_books=266, non_test_books=0"
+Reference annotation completeness,PASS,"invalid_aspects=[], invalid_sentiments=[], sentiment_errors=0, evidence_errors=0, missing_rationales=0, unreviewed_annotations=0"
+Reference provenance,PASS,"annotation_source=['ai_generated_reference'], human_verified=[False]"
+Reference units available in locked test pipeline,PASS,"missing_units=0, pipeline_splits=['test']"
+Test books excluded from weak-label training candidates,PASS,"eligible_train_reviews=13132, reference_book_overlap=0"

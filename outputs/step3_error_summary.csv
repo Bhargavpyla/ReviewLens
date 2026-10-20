@@ -1,0 +1,7 @@
+error_type,error_count
+context_lost_during_splitting,2
+false_detection_on_none,12
+incorrect_extra_aspect,3
+incorrect_sentiment_aspect_text,18
+incorrect_sentiment_whole_review,25
+missed_aspect,6

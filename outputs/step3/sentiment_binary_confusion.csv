@@ -1,0 +1,5 @@
+task,scope,actual_label,predicted_positive,predicted_negative,predicted_neutral,predicted_missing_aspect
+binary_positive_negative,aspect_text,positive,9,2,0,4
+binary_positive_negative,aspect_text,negative,1,5,0,1
+binary_positive_negative,whole_review,positive,10,1,0,4
+binary_positive_negative,whole_review,negative,3,3,0,1

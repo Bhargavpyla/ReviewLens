@@ -1,0 +1,5 @@
+task,scope,class,precision,recall,f1,support,predicted_count,true_positive,false_positive,false_negative
+binary_positive_negative,aspect_text,positive,0.9,0.6,0.72,15,10,9,1,6
+binary_positive_negative,aspect_text,negative,0.714286,0.714286,0.714286,7,7,5,2,2
+binary_positive_negative,whole_review,positive,0.769231,0.666667,0.714286,15,13,10,3,5
+binary_positive_negative,whole_review,negative,0.75,0.428571,0.545455,7,4,3,1,4

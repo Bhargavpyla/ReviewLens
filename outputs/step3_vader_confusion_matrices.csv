@@ -1,0 +1,7 @@
+scope,actual_label,predicted_positive,predicted_negative,predicted_neutral
+aspect_text_vader_3class,positive,13,2,0
+aspect_text_vader_3class,negative,1,5,1
+aspect_text_vader_3class,neutral,8,6,6
+whole_review_vader_3class,positive,14,1,0
+whole_review_vader_3class,negative,4,3,0
+whole_review_vader_3class,neutral,15,5,0
