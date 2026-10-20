@@ -1,2 +1,50 @@
+# Python & Environments
 .venv/
+venv/
+env/
+ENV/
 __pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+
+# Large Datasets & Raw Files
+# The 20,000-review master dataset is ~17MB and generated deterministically via src/load_and_sample.py
+data/books_reviews_20000.csv
+data/*.jsonl
+data/*.zip
+data/*.gz
+data/*.tar
+data/*.parquet
+
+# Keep test fixtures and small samples tracked:
+!data/books_sample_20.csv
+!data/synthetic_reviews_20.csv
+!data/synthetic_expected_labels.csv
+
+# Machine Learning Models, Checkpoints & Embeddings
+models/
+checkpoints/
+*.pt
+*.bin
+*.onnx
+*.safetensors
+*.pkl
+*.joblib
+*.h5
+
+# Logs and Large Output Dumps
+*.log
+outputs/*.txt
+outputs/*.log
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# IDE & OS Specific
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
