@@ -75,7 +75,28 @@ def prepare_text(text: str) -> str:
 
 
 def split_clauses(sentence: str):
-    return [c.strip() for c in CLAUSE_SPLIT.split(sentence) if c and c.strip()]
+    if not sentence or not sentence.strip():
+        return []
+    text = sentence
+    replacements = [
+        (re.compile(r"\bnot\s+only\b([^;,\n]+?)\bbut\b", re.I), r"not only\1__BUT_TOKEN__"),
+        (re.compile(r"\bnot\s+just\b([^;,\n]+?)\bbut\b", re.I), r"not just\1__BUT_TOKEN__"),
+        (re.compile(r"\bnot\s+simply\b([^;,\n]+?)\bbut\b", re.I), r"not simply\1__BUT_TOKEN__"),
+        (
+            re.compile(r"\b(?:nothing|anything|all|help)\s+but\b", re.I),
+            lambda m: m.group(0).replace("but", "__BUT_TOKEN__"),
+        ),
+    ]
+    for pattern, repl in replacements:
+        text = pattern.sub(repl, text)
+
+    parts = CLAUSE_SPLIT.split(text)
+    clauses = [
+        p.replace("__BUT_TOKEN__", "but").strip()
+        for p in parts
+        if p and p.strip()
+    ]
+    return clauses or [sentence.strip()]
 
 
 def find_aspects(text: str):
@@ -116,25 +137,26 @@ def vader_label(compound: float, thr: float = 0.05) -> str:
     return "neutral"
 
 
-def load_reviews(path=None):
+def load_reviews(path=None, full_dataset: bool = False):
     if path is None:
         return [
             {"review_id": str(index), "book_id": "built_in", "raw_text": text, "rating": rating}
             for index, (text, rating) in enumerate(SAMPLES)
         ]
     if str(path).lower().endswith(".csv"):
-        df = pd.read_csv(path)
+        df = pd.read_csv(path, keep_default_na=False)
     else:
         df = pd.read_json(path, lines=True)
-    text_column = "raw_text" if "raw_text" in df.columns else "text"
-    df = df.dropna(subset=[text_column, "rating"]).head(20)
+    text_column = "cleaned_text" if "cleaned_text" in df.columns else ("raw_text" if "raw_text" in df.columns else "text")
+    if not full_dataset and "20000" not in str(path) and len(df) > 20 and str(path) != "--full":
+        df = df.head(20)
     reviews = []
     for index, row in df.iterrows():
         reviews.append({
-            "review_id": row.get("review_id", str(index)),
+            "review_id": row.get("review_id", f"review_{index+1:05d}"),
             "book_id": row.get("book_id", row.get("parent_asin", "")),
-            "raw_text": row[text_column],
-            "rating": row["rating"],
+            "raw_text": row.get(text_column, ""),
+            "rating": row.get("rating"),
         })
     return reviews
 
@@ -142,24 +164,60 @@ def load_reviews(path=None):
 # ---------------------------------------------------------------
 # 4. Run the chain
 # ---------------------------------------------------------------
-def run(reviews):
+def run(reviews, splits_path: str = "data/book_splits.csv"):
+    book_to_split = {}
+    from pathlib import Path
+    if splits_path and Path(splits_path).exists():
+        df_sp = pd.read_csv(splits_path, keep_default_na=False)
+        book_to_split = dict(zip(df_sp["book_id"].astype(str), df_sp["split"]))
+
     rows = []
     for review in reviews:
-        review_id = review["review_id"]
-        book_id = review["book_id"]
+        review_id = str(review["review_id"])
+        book_id = str(review["book_id"])
+        split_name = book_to_split.get(book_id, "unknown")
         text = prepare_text(review["raw_text"])
         rating = review["rating"]
+        if not text:
+            rows.append({
+                "review_id": review_id,
+                "book_id": book_id,
+                "split": split_name,
+                "stars": rating,
+                "whole_review_vader": 0.0,
+                "sentence_id": f"{review_id}_s01",
+                "sentence_text": "[empty review]",
+                "clause_id": f"{review_id}_s01_c01",
+                "clause": "[empty review]",
+                "aspect": "none",
+                "clause_vader": 0.0,
+                "pred_sentiment": "neutral",
+            })
+            continue
+
         whole = vader.polarity_scores(text)["compound"]
-        for sent in (s.text.strip() for s in nlp(text).sents):
-            for clause in split_clauses(sent):
+        doc = nlp(text)
+        sents = [s.text.strip() for s in doc.sents if s.text.strip()]
+        if not sents:
+            sents = [text]
+
+        for s_idx, sent in enumerate(sents, start=1):
+            sentence_id = f"{review_id}_s{s_idx:02d}"
+            clauses = split_clauses(sent)
+            for c_idx, clause in enumerate(clauses, start=1):
+                clause_id = f"{sentence_id}_c{c_idx:02d}"
                 aspects = find_aspects(clause)
                 score = vader.polarity_scores(clause)["compound"]
                 for asp in aspects or ["none"]:
                     rows.append({
                         "review_id": review_id,
                         "book_id": book_id,
+                        "split": split_name,
                         "stars": rating,
                         "whole_review_vader": round(whole, 2),
+                        "sentence_id": sentence_id,
+                        "sentence_text": sent,
+                        "clause_id": clause_id,
                         "clause": clause,
                         "aspect": asp,
                         "clause_vader": round(score, 2),
@@ -169,16 +227,27 @@ def run(reviews):
 
 
 if __name__ == "__main__":
-    reviews = load_reviews(sys.argv[1] if len(sys.argv) > 1 else None)
-    df = run(reviews)
+    from pathlib import Path
+    arg = sys.argv[1] if len(sys.argv) > 1 else None
+    is_full = (arg == "--full") or (arg and "20000" in str(arg))
 
-    pd.set_option("display.max_colwidth", 60, "display.width", 200)
-    print(df[["review_id", "stars", "whole_review_vader", "clause",
-              "aspect", "clause_vader", "pred_sentiment"]].to_string(index=False))
+    if is_full:
+        data_path = "data/books_reviews_20000.csv" if arg == "--full" else arg
+        output_path = "outputs/full_pipeline_output.csv"
+        reviews = load_reviews(data_path, full_dataset=True)
+        print(f"Running full pipeline on {len(reviews):,} reviews from {data_path}...")
+        df = run(reviews)
+        print(f"Processed {len(df):,} clauses across {df['review_id'].nunique():,} reviews.")
+    else:
+        reviews = load_reviews(arg, full_dataset=False)
+        df = run(reviews)
+        pd.set_option("display.max_colwidth", 60, "display.width", 200)
+        print(df[["review_id", "stars", "whole_review_vader", "clause",
+                  "aspect", "clause_vader", "pred_sentiment"]].to_string(index=False))
+        output_path = "outputs/day1_pipeline_output.csv"
 
     print("\nClauses with NO aspect found:", (df.aspect == "none").sum(), "of", len(df))
-    output_path = "outputs/day1_pipeline_output.csv"
-    from pathlib import Path
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(output_path, index=False)
     print(f"Saved {output_path}")
+

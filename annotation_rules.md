@@ -1,46 +1,58 @@
 # ReviewLens Annotation Rules
 
-Status: finalized after reviewing every row in the first 20-review pipeline preview on 2026-10-20.
+Status: Updated for Step 2 Reference Annotation on 2026-10-21.
 
-The initial file was empty, so the rules were not finalized before predictions were viewed. This chronology limitation must be disclosed in the report. The later gold-labeling CSV must still be prediction-free.
+Step 1 established the initial baseline and keyword rules. Step 2 created reproducible book-level splits, processed the full 20,000-review dataset, sampled 300 test units with a per-book cap (max 2/book), and generated an AI reference benchmark (`ai_generated_reference`, `human_verified=false`).
 
 ## Labels
 
-- Allowed aspects: `plot`, `characters`, `pacing`, `writing_style`, `ending`, `none`.
-- Allowed sentiments for aspect-bearing units: `positive`, `negative`, `neutral`.
+- Allowed aspects: `plot`, `characters`, `pacing`, `writing_style`, `ending`, `none`, `uncertain`.
+- Allowed sentiments for aspect-bearing units: `positive`, `negative`, `neutral`, `uncertain`.
 - `neutral` means a factual description or recap without an expressed opinion.
-- When the aspect is `none`, leave `gold_sentiment` empty. Exclude these rows from aspect-level sentiment scoring.
+- Factual descriptions of the ending (e.g. plot resolution, structure, or what occurs at the conclusion without evaluative praise or critique) are labeled `ending` + `neutral`.
+- Factual descriptions or recaps of the plot/premise are labeled `plot` + `neutral`.
+- When the aspect is `none`, leave `sentiment` empty (`""`). Exclude these rows from aspect-level sentiment scoring.
 
-## Annotation Unit
+## Annotation Unit & Clause Integrity
 
 1. Label one sentence or clause per row.
 2. Split a mixed sentence into clauses when the clauses express different aspects or sentiments.
-3. Use one primary aspect per row unless the same indivisible clause clearly evaluates two aspects.
-4. If a clause cannot be split without losing its meaning, use the dominant aspect and sentiment and record the ambiguity for error analysis.
+3. Do not split clauses if doing so changes or breaks the reviewer's intended assessment:
+   - Correlative constructions ("not only ... but [also]", "not just ... but") must not be split at `but` because separating the correlative fragment leaves a false negative polarity in isolation.
+   - Idiomatic "but" expressions ("nothing but", "anything but", "all but", "cannot help but") must remain intact.
+   - Conditional and hypothetical statements ("I thought it would be boring, but it was amazing") must be evaluated in their full rhetorical context.
+4. Use one primary aspect per row, and support multiple aspect–sentiment pairs in `aspect_sentiment_pairs` (e.g. `characters:positive; writing_style:positive`) when an indivisible unit evaluates multiple aspects.
+5. If a clause cannot be split without losing its meaning, assign the dominant aspect and sentiment and set `ambiguity_flag=True`.
 
 ## Aspect Decisions
 
 1. Label the meaning of the text, not the presence of a keyword.
-2. Use `plot` for opinions about the story, premise, mystery, twists, suspense, or events.
-3. Use `characters` for opinions about characters, characterization, relationships, or character development.
-4. Use `pacing` for speed, flow, dragging, rushing, chapter length, or engagement such as "hard to put down" and wanting to know what happens next.
-5. Use `writing_style` for prose, dialogue, narration, wording, grammar, typos, proofreading, accents, or the author's technique.
-6. Use `ending` only for an opinion about the ending or conclusion. Merely saying "read to the end" is not an ending opinion.
-7. Use `none` for vague whole-book praise or criticism and content outside the five supported aspects. This includes illustrations, formatting, genre preference, shipping, seller, price, packaging, and physical condition.
-8. A phrase such as "story book" that identifies a type of book is not automatically `plot`.
+2. Use `plot` for opinions about the story, premise, mystery, twists, suspense, or narrative events.
+3. Use `characters` for opinions about characters, protagonist, villain, relationships, or character development.
+4. Use `pacing` for speed, flow, dragging, rushing, chapter length, page-turning engagement, or ease/quickness of reading.
+5. Use `writing_style` for prose, dialogue, narration, wording, grammar, typos, proofreading, accents, or the author's technique and craft.
+6. Use `ending` for opinions or factual statements about the ending, finale, climax, epilogue, or resolution. Merely saying "read to the end" is reading activity, not ending evaluation.
+7. Use `none` for vague whole-book praise or criticism ("Great book!", "Loved it!") and content outside the five supported aspects. This includes illustrations, formatting, genre preference, shipping, seller, price, packaging, and physical condition.
+8. A phrase such as "story book" that identifies a product type is not automatically `plot`.
 9. "The story dragged" is `pacing`, not `plot`. If a clause independently evaluates story content and speed, split it when possible.
 
 ## Sentiment Decisions
 
-1. Label the reviewer's intended opinion, not isolated positive or negative words.
+1. Label the reviewer's intended opinion in context, not isolated polar keywords.
 2. Plot recaps and factual descriptions are `neutral`, including facts containing words such as "kills", "dangerous", or "horrific".
-3. Resolve negation compositionally: "not boring" is `positive`; "not interesting" is `negative`.
-4. Resolve sarcasm by intended meaning rather than literal polarity.
-5. Label mixed sentiment at clause level.
+3. Factual descriptions of the ending structure are `neutral`.
+4. Resolve negation compositionally: "not boring" is `positive`; "not interesting" is `negative`.
+5. Resolve sarcasm by intended meaning rather than literal polarity.
+6. When conflicting polarities co-occur without a clear dominant tone, assign `ambiguity_flag=True` or `uncertain`.
 
-## Consistency Log
+## Reference Annotation Status & Evaluation Protocols
 
-- "Kept me guessing" about a mystery is `plot`; "impossible to put down" or "kept me reading" is `pacing`.
-- Criticism of culturally inaccurate dialogue or accents is `writing_style`.
-- Opinions about illustrations remain `none` because visual design is outside the fixed schema.
-- Non-narrative products in the Books category still use the fixed schema; unsupported content is `none`.
+- All test set reference annotations are generated by the agent and strictly marked:
+  - `annotation_source = "ai_generated_reference"`
+  - `human_verified = False`
+  - `consistency_reviewed = True`
+- These labels must NOT be referred to as an independent human-labeled gold set. Any later scores evaluated against them represent provisional agreement with AI-generated reference labels.
+- Evaluation split protocol:
+  - Binary-trained models (e.g. TF-IDF + SVM trained on weak 1-2 star vs 4-5 star labels) require evaluation on the shared positive/negative reference subset.
+  - Neutral coverage and three-class VADER agreement must be reported separately and explicitly.
+

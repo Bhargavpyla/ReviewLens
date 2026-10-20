@@ -1,0 +1,4 @@
+split,book_count,book_percentage,review_count,review_percentage
+train,12285,70.004,14067,70.335
+dev,2632,14.998,3027,15.135
+test,2632,14.998,2906,14.53

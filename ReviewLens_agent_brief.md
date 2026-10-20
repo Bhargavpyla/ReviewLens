@@ -2,13 +2,18 @@
 
 `ReviewLens_Complete_Plan.md` is the authoritative plan. This brief summarizes the fixed constraints. If the two files conflict, follow the complete plan.
 
-**Current status (2026-10-20):** Step 1 is complete. Step 2 has not started.
+**Current status (2026-10-21):** Steps 1 and 2 are complete. Step 3 has not started.
 
 Aspect-based sentiment analysis on Amazon book reviews. Solo student project (ML Lab, MIT Manipal), limited time. Work inside the existing ReviewLens folder and build on the existing files; do not rewrite from scratch.
 
 **Existing files**
 - `src/load_and_sample.py`: deterministic random-range sampler for the official Books JSONL source
-- `day1_pipeline_test.py`: review -> sentences (spaCy sentencizer) -> clauses -> keyword aspects -> VADER sentiment
+- `src/split_data.py`: strict book-level partitioning (70% train, 15% dev, 15% test; preview books in dev)
+- `src/run_pipeline.py`: full dataset pipeline processing 20,000 reviews with stable IDs and accounting
+- `src/select_annotation_units.py`: sampling 300 test units with <=2 units/book cap into blind evaluation file
+- `src/reference_annotator.py`: AI reference annotation engine with factual ending neutral rules and consistency review
+- `src/validate_step2.py`: comprehensive verification suite for splits, IDs, and annotations
+- `day1_pipeline_test.py`: review -> sentences (spaCy sentencizer) -> clauses -> keyword aspects -> VADER sentiment (supports preview and full run)
 - `data/synthetic_reviews_20.csv` and `data/synthetic_expected_labels.csv`: development fixtures only
 - `eval_synthetic.py` is not currently present; add it later only if the synthetic regression test is restored
 
@@ -30,11 +35,11 @@ Note: "story" and "plot" are the same aspect (`plot`). Sentiment labels are `pos
 1. **Split train/test by book id**, never by review or sentence.
 2. Keep a **raw text** copy and a **cleaned** copy. Never remove negation ("not", "never", "no") from sentiment input.
 3. Weak training labels: stars 4-5 = positive, 1-2 = negative; drop 3-star for training only.
-4. All methods are evaluated on the **same hand-labeled gold set**. The gold set is never used for training or tuning.
+4. All methods are evaluated on the **same hand-labeled gold set / AI reference benchmark**. The reference set is never used for training or tuning.
 5. Report **macro-F1** and a confusion matrix, not only accuracy. Report aspect detection separately from sentiment.
 6. Fixed random seeds everywhere. Save every intermediate output as CSV.
 7. Do not tune keywords or models on the gold set. Tune on a separate dev split.
-8. Never show model predictions in the file I use for labeling.
+8. Never show model predictions in the file used for labeling.
 9. If something in these instructions looks wrong or risky for the evaluation, tell me before continuing.
 
 ## Data
@@ -47,7 +52,8 @@ Note: "story" and "plot" are the same aspect (`plot`). Sentiment labels are `pos
 ## Build order (stop and wait for me after each step)
 
 1. [x] **Loader and sampler.** Produce the 20,000-review master CSV, derive a 20-review preview from it, run the existing pipeline, review every preview row, and finalize the Day 1 rules and keywords.
-2. [ ] **Full-sample run**, then export a random set of about 300 annotation units from the *test* books for labeling. Columns: `sentence_id, review_id, sentence, gold_aspect, gold_sentiment` (last two empty). No predictions in this file. Make sure one book does not dominate the sample.
+2. [x] **Full-sample run & reference annotation.** Full 20k reviews processed into train/dev/test splits with 0 book leakage; all 20 preview books in dev. Exported 300 test units with a 2-unit cap per book. Generated prediction-free blind file and AI-generated reference benchmark (`ai_generated_reference`, `human_verified=false`) with evidence spans and consistency review.
+
 3. [ ] **Evaluation script.** Run VADER on the labeled gold set. Output: per-aspect table, confusion matrix, macro-F1, aspect-detection accuracy, and a comparison of aspect-level sentiment against whole-review sentiment.
 4. [ ] **TF-IDF + SVM** (`class_weight='balanced'`), trained on weak labels, evaluated on the gold set.
 5. [ ] **Topic models.** LDA (choose topic count by coherence, c_v, 5-10 topics) on cleaned text; BERTopic with default settings on raw sentences. Output top words per topic to a CSV for manual naming. Visualize LDA with pyLDAvis.

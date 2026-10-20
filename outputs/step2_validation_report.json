@@ -1,0 +1,52 @@
+{
+  "status": "PASS",
+  "checks": {
+    "split_isolation": {
+      "passed": true,
+      "train_books": 12285,
+      "dev_books": 2632,
+      "test_books": 2632,
+      "total_books": 17549,
+      "preview_books_in_dev": 20,
+      "book_leakage_count": 0
+    },
+    "pipeline_accounting": {
+      "passed": true,
+      "input_reviews_accounted": 20000,
+      "total_clause_records": 101241,
+      "unique_sentences": 89785,
+      "missing_reviews_count": 0
+    },
+    "blind_units": {
+      "passed": true,
+      "unit_count": 300,
+      "unique_books": 266,
+      "max_units_per_book": 2,
+      "pure_blind_verified": true
+    },
+    "reference_annotations": {
+      "passed": true,
+      "annotation_count": 300,
+      "aspect_bearing_count": 38,
+      "none_count": 262,
+      "aspect_distribution": {
+        "none": 262,
+        "plot": 14,
+        "characters": 10,
+        "writing_style": 8,
+        "ending": 4,
+        "pacing": 2
+      },
+      "aspect_sentiment_distribution": {
+        "neutral": 18,
+        "positive": 14,
+        "negative": 6
+      },
+      "ambiguity_count": 8,
+      "annotation_source": "ai_generated_reference",
+      "human_verified": false,
+      "consistency_reviewed": true
+    }
+  },
+  "summary": {}
+}

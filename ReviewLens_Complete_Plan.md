@@ -4,7 +4,7 @@ Two-stage NLP pipeline on Amazon book reviews: find aspects (plot, pacing, chara
 
 ## Current status
 
-Step 1 is complete as of 2026-10-20. The 20,000-review sample, 20-review preview, row-by-row preview review, finalized annotation rules, and Step 1 outputs are present. Step 2 has not started.
+Steps 1 and 2 are complete as of 2026-10-21. The 20,000-review sample, reproducible book-level splits (train 70%, dev 15%, test 15% with 0 leakage; all preview books in dev), full 20,000 pipeline output, 300 test blind annotation units (max 2/book), and AI reference annotations (`ai_generated_reference`, `human_verified=false`) are present. Step 3 has not started.
 
 ---
 
@@ -72,8 +72,8 @@ The finalized rules are in `annotation_rules.md`. The initial file was empty and
 ## 5. Agent build order (stop for review after each step)
 
 1. [x] **Loader and sampler:** Amazon Reviews 2023, Books category, following the official data-loading guide. Stream, do not download everything. Random sample about 20k; keep text, rating, book id; drop empty and duplicate rows; report counts, rating distribution, reviews per book. Run the existing pipeline on 20 reviews and output a CSV.
-2. [ ] **Full run and labeling export:** run on the full sample. Export about 300 random test-book annotation units with columns `sentence_id, review_id, sentence, gold_aspect, gold_sentiment` (last two empty, no predictions). A mixed sentence may produce separate clause rows. Do not let one book dominate the file.
-3. [ ] **Evaluation script:** VADER on the gold set. Per-aspect table, confusion matrix, macro-F1, aspect-detection accuracy, and **aspect-level vs whole-review sentiment** (the key result).
+2. [x] **Full run and reference annotation:** run on the full 20,000 reviews with strict book-level splits (0 leakage; preview books in dev). Exported 300 blind test units (capped at max 2 units/book). Generated AI reference benchmark (`ai_generated_reference`, `human_verified=false`) with evidence spans and consistency review.
+3. [ ] **Evaluation script:** VADER on the reference set. Per-aspect table, confusion matrix, macro-F1, aspect-detection accuracy, and **aspect-level vs whole-review sentiment** (the key result).
 4. [ ] **TF-IDF + SVM:** `class_weight='balanced'`, trained on weak labels, tested on the gold set.
 5. [ ] **Topic models:** LDA (5-10 topics, choose by c_v coherence, cleaned text) and BERTopic with defaults on raw sentences. Export top words per topic to CSV for manual naming. pyLDAvis for LDA.
 6. [ ] **DistilBERT:** fine-tune on a 5-10k sentence subset, 1-2 epochs, Colab-ready notebook, same split and gold set.

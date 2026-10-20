@@ -39,6 +39,8 @@ checkpoints/
 *.log
 outputs/*.txt
 outputs/*.log
+outputs/*full*.csv
+outputs/full_pipeline_output.csv
 
 # Jupyter Notebooks
 .ipynb_checkpoints/

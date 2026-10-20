@@ -6,7 +6,13 @@ The authoritative workflow is `ReviewLens_Complete_Plan.md`. Work stops for revi
 
 ## Current Status
 
-Step 1 is complete. The project contains a deterministic 20,000-review sample, a 20-review preview, finalized annotation rules, and the preview pipeline output. Step 2 has not started.
+Steps 1 and 2 are complete. The project contains:
+- A deterministic 20,000-review master sample and 20-review preview.
+- Reproducible book-level splits (train 70%, dev 15%, test 15%) with 0 book leakage and all 20 preview books in dev.
+- Full dataset pipeline processing accounting for 100% of input reviews (101,241 clause-aspect records across 20,000 reviews).
+- 300 blind test annotation units sampled independently of keywords/predictions, capped at <=2 units/book across 266 test books.
+- AI reference annotations (`ai_generated_reference`, `human_verified=false`) with exact evidence spans, rationales, and consistency review.
+- Step 3 has not started.
 
 ## Setup
 
@@ -29,28 +35,81 @@ Run the preview through the keyword-aspect and VADER pipeline:
 .\.venv\Scripts\python.exe day1_pipeline_test.py data\books_sample_20.csv
 ```
 
-## Step 1 Outputs
+## Step 2 Commands
 
-- `data/books_reviews_20000.csv`: master sample with raw and cleaned text.
-- `data/books_sample_20.csv`: first 20 rows of the deterministic master sample.
-- `outputs/books_reviews_20000_summary.csv`: sampling and cleaning counts.
-- `outputs/books_reviews_20000_rating_distribution.csv`: rating counts.
-- `outputs/books_reviews_20000_reviews_per_book.csv`: review count by book.
-- `outputs/day1_pipeline_output.csv`: sentence/clause aspect and VADER predictions.
-- `outputs/day1_console_output.txt`: complete preview run log.
+Create reproducible book-level dataset splits (Seed 42):
 
-## Sampling Method
+```powershell
+.\.venv\Scripts\python.exe src\split_data.py --seed 42
+```
 
-The official Amazon Reviews 2023 Books JSONL file is about 20.1 GB. The loader reads deterministic random byte ranges across the file, discards partial boundary records, removes empty and duplicate reviews, and samples from the resulting candidates. This avoids downloading the full source. It is an approximate random-row sample because byte-range selection gives a slight advantage to longer records; disclose this limitation in the report.
+Run the full pipeline on all 20,000 reviews (with stable IDs, context, and split mapping):
+
+```powershell
+.\.venv\Scripts\python.exe src\run_pipeline.py
+# Alternatively: .\.venv\Scripts\python.exe day1_pipeline_test.py --full
+```
+
+Select 300 blind test annotation units (capped at max 2 units per book):
+
+```powershell
+.\.venv\Scripts\python.exe src\select_annotation_units.py --seed 42 --sample-size 300 --max-per-book 2
+```
+
+Generate contextual AI reference annotations and execute consistency review:
+
+```powershell
+.\.venv\Scripts\python.exe src\reference_annotator.py
+```
+
+Run the Step 2 comprehensive validation suite:
+
+```powershell
+.\.venv\Scripts\python.exe src\validate_step2.py
+```
+
+## Step 2 Outputs
+
+- `data/book_splits.csv`: split assignment (`train`, `dev`, `test`) and review count for all 17,549 books.
+- `outputs/book_splits_summary.csv`: split breakdown (Train: 12,285 books / 70.00%, Dev: 2,632 books / 15.00%, Test: 2,632 books / 15.00%).
+- `outputs/full_pipeline_output.csv`: complete 101,241 clause-aspect records with stable review, sentence, and clause IDs and original context.
+- `outputs/full_pipeline_summary.csv`: baseline aspect and sentiment distributions across all 20,000 reviews.
+- `data/test_annotation_units_300_blind.csv`: 300 blind test units across 266 test books without model predictions or ratings.
+- `data/reference_annotations_300.csv`: 300 annotated reference units with aspect, sentiment, evidence span, rationale, and ambiguity flags.
+- `outputs/step2_reference_coverage.csv`: coverage breakdown of reference annotations.
+- `outputs/step2_validation_report.json` & `outputs/step2_validation_summary.csv`: automated test results showing 100% checks passing.
+
+## Sampling & Splitting Methodology
+
+- **Sampling**: Amazon Reviews 2023 Books (20.1 GB) was streamed using deterministic random byte ranges to produce `data/books_reviews_20000.csv`.
+- **Book Partitioning**: Books were partitioned into Train (70%), Dev (15%), and Test (15%) by unique `book_id`. All 20 books inspected in Step 1 were placed into `dev`. Zero books cross splits.
+- **Test Unit Selection**: 300 units were sampled uniformly at random from test books only, independent of keyword matches, VADER predictions, or star ratings. A cap of 2 units per book ensured 266 distinct books are represented.
 
 ## Folder Layout
 
 ```text
 ReviewLens/
 |-- data/
+|   |-- book_splits.csv
+|   |-- books_sample_20.csv
+|   |-- reference_annotations_300.csv
+|   |-- synthetic_expected_labels.csv
+|   |-- synthetic_reviews_20.csv
+|   `-- test_annotation_units_300_blind.csv
 |-- notebooks/
 |-- outputs/
+|   |-- book_splits_summary.csv
+|   |-- day1_pipeline_output.csv
+|   |-- full_pipeline_summary.csv
+|   |-- step2_reference_coverage.csv
+|   |-- step2_validation_report.json
+|   `-- step2_validation_summary.csv
 |-- src/
+|   |-- load_and_sample.py
+|   |-- reference_annotator.py
+|   |-- run_pipeline.py
+|   |-- select_annotation_units.py
+|   `-- split_data.py
 |-- annotation_rules.md
 |-- day1_pipeline_test.py
 |-- requirements.txt
@@ -58,19 +117,9 @@ ReviewLens/
 `-- ReviewLens_agent_brief.md
 ```
 
-## Important Rules
+## Honest Limitations
 
-- Split train, development, and test data by `book_id`.
-- Preserve raw text and use cleaned text without removing negation.
-- Keep the gold-labeling file blind: no model predictions.
-- Never train or tune on the gold set.
-- Report macro-F1, per-class results, confusion matrices, and aspect detection separately.
-- Treat the synthetic CSV files only as code-test fixtures; never report their scores as results.
+- **AI-Generated Reference Labels**: The 300 reference annotations are generated by the agent (`annotation_source="ai_generated_reference"`, `human_verified=false`) rather than an independent human panel. Any scores evaluated against them represent provisional agreement rather than ground-truth human accuracy.
+- **Binary vs. 3-Class Evaluation**: Subsequent models trained on weak labels (stars 1-2 vs 4-5) drop 3-star reviews and will evaluate on the positive/negative reference subset. Neutral coverage and separate three-class VADER agreement will be reported explicitly.
+- **Class Imbalance in Natural Text**: Random sampling from real reviews shows ~87% of text units do not discuss the five supported book aspects (`aspect="none"`). Factual ending recaps and factual plot descriptions are assigned `neutral`.
 
-## Known Step 1 Findings
-
-- Most random Books-category text does not mention one of the five supported aspects.
-- The Books category includes non-narrative products and reviews of illustrations, formatting, and physical condition.
-- VADER mishandles sarcasm, negation scope, plot recaps, and phrases such as "mediocre at best" or "leave a lot to be desired".
-- Regex clause splitting can separate text awkwardly.
-- The annotation rules were finalized after predictions were viewed because the initial file was empty. Keep the later gold-labeling process prediction-free and disclose this chronology limitation.

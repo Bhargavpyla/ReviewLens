@@ -1,0 +1,8 @@
+Check,Status,Detail
+Split Isolation (0 Overlap),PASS,"Train: 12,285 | Dev: 2,632 | Test: 2,632"
+Preview Book Confinement,PASS,All 20 Step 1 preview books in Dev
+Full Master Accounting,PASS,"100% of 20,000 master reviews processed"
+Test Blind Sampling,PASS,300 units across 266 test books (cap: 2/book)
+Prediction-Free Blind File,PASS,"No stars, VADER scores, or predictions in blind file"
+Reference Annotation Quality,PASS,"38 aspect-bearing units, 262 none, evidence spans verified"
+Metadata Integrity,PASS,"ai_generated_reference, human_verified=False"

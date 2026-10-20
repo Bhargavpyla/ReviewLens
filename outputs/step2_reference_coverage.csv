@@ -1,0 +1,8 @@
+aspect,count,percentage,positive_count,negative_count,neutral_count,empty_sentiment_count,ambiguity_count
+plot,14,4.67,5,2,7,0,4
+characters,10,3.33,3,2,5,0,2
+pacing,2,0.67,2,0,0,0,1
+writing_style,8,2.67,3,1,4,0,0
+ending,4,1.33,1,1,2,0,1
+none,262,87.33,0,0,0,262,0
+uncertain,0,0.0,0,0,0,0,0
