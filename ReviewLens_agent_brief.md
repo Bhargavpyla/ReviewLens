@@ -1,10 +1,16 @@
 # ReviewLens: Agent Brief
 
+`ReviewLens_Complete_Plan.md` is the authoritative plan. This brief summarizes the fixed constraints. If the two files conflict, follow the complete plan.
+
+**Current status (2026-10-20):** Step 1 is complete. Step 2 has not started.
+
 Aspect-based sentiment analysis on Amazon book reviews. Solo student project (ML Lab, MIT Manipal), limited time. Work inside the existing ReviewLens folder and build on the existing files; do not rewrite from scratch.
 
 **Existing files**
-- `day1_pipeline_test.py`: review → sentences (spaCy sentencizer) → clauses (split on "but", "however", ";") → keyword aspects → VADER sentiment
-- `eval_synthetic.py`: scores the pipeline against ChatGPT-generated synthetic data (development use only)
+- `src/load_and_sample.py`: deterministic random-range sampler for the official Books JSONL source
+- `day1_pipeline_test.py`: review -> sentences (spaCy sentencizer) -> clauses -> keyword aspects -> VADER sentiment
+- `data/synthetic_reviews_20.csv` and `data/synthetic_expected_labels.csv`: development fixtures only
+- `eval_synthetic.py` is not currently present; add it later only if the synthetic regression test is restored
 
 ## Aspect schema (fixed, do not add aspects on your own)
 
@@ -34,19 +40,19 @@ Note: "story" and "plot" are the same aspect (`plot`). Sentiment labels are `pos
 ## Data
 
 - Source: Amazon Reviews 2023, Books category (follow the official data-loading guide). Do not download the whole dataset; stream it.
-- **Randomly sample** about 20k reviews (not the first N lines). Keep review text, rating, book id.
+- **Randomly sample** about 20k reviews (not the first N lines). Keep review text, rating, book id. The current deterministic byte-range method has slight text-length bias; disclose it.
 - Drop empty text and duplicates. Report counts before and after.
 - Report rating distribution and reviews-per-book after sampling.
 
 ## Build order (stop and wait for me after each step)
 
-1. **Loader and sampler.** Produce a 20-review sample CSV and run the existing pipeline on it. Show me the output.
-2. **Full-sample run**, then export a random set of about 300 sentences from the *test* books for me to label. Columns: `sentence_id, review_id, sentence, gold_aspect, gold_sentiment` (last two empty). No predictions in this file. Make sure the sample is not dominated by one book or one aspect.
-3. **Evaluation script.** Run VADER on my labeled gold set. Output: per-aspect table, confusion matrix, macro-F1, aspect-detection accuracy, and a comparison of aspect-level sentiment against whole-review sentiment.
-4. **TF-IDF + SVM** (`class_weight='balanced'`), trained on weak labels, evaluated on the gold set.
-5. **Topic models.** LDA (choose topic count by coherence, c_v, 5-10 topics) on cleaned text; BERTopic with default settings on raw sentences. Output top words per topic to a CSV so I can name them by hand. Visualize LDA with pyLDAvis.
-6. **DistilBERT** fine-tuned on a 5-10k sentence subset, as a Colab-ready notebook. Same train/test split and same gold set.
-7. **Streamlit app**: one book dropdown, one aspect-sentiment bar chart, example sentences for each bar.
+1. [x] **Loader and sampler.** Produce the 20,000-review master CSV, derive a 20-review preview from it, run the existing pipeline, review every preview row, and finalize the Day 1 rules and keywords.
+2. [ ] **Full-sample run**, then export a random set of about 300 annotation units from the *test* books for labeling. Columns: `sentence_id, review_id, sentence, gold_aspect, gold_sentiment` (last two empty). No predictions in this file. Make sure one book does not dominate the sample.
+3. [ ] **Evaluation script.** Run VADER on the labeled gold set. Output: per-aspect table, confusion matrix, macro-F1, aspect-detection accuracy, and a comparison of aspect-level sentiment against whole-review sentiment.
+4. [ ] **TF-IDF + SVM** (`class_weight='balanced'`), trained on weak labels, evaluated on the gold set.
+5. [ ] **Topic models.** LDA (choose topic count by coherence, c_v, 5-10 topics) on cleaned text; BERTopic with default settings on raw sentences. Output top words per topic to a CSV for manual naming. Visualize LDA with pyLDAvis.
+6. [ ] **DistilBERT** fine-tuned on a 5-10k sentence subset, as a Colab-ready notebook. Same train/test split and same gold set.
+7. [ ] **Streamlit app**: one book dropdown, one aspect-sentiment bar chart, example sentences for each bar.
 
 If time runs out, steps 1-4 already make a complete project. Cut from the bottom, not the top.
 

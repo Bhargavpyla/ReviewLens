@@ -1,8 +1,8 @@
 """
-ReviewLens - Day 1: run ~20 reviews through the WHOLE chain by hand.
+ReviewLens - Step 1 preview: run 20 master-sample reviews through the full baseline.
 
 Chain:  review -> sentences -> clauses -> aspect keywords -> VADER sentiment
-Goal:   READ the output and see what breaks BEFORE scaling to 20-30k reviews.
+Goal:   Review baseline failures before creating the blind Step 2 labeling file.
 
 Setup:  pip install vaderSentiment spacy pandas
 Run:    python day1_pipeline_test.py                      (uses built-in samples)
@@ -164,9 +164,6 @@ def run(reviews):
                         "aspect": asp,
                         "clause_vader": round(score, 2),
                         "pred_sentiment": vader_label(score),
-                        # fill these in BY HAND while reading: this becomes your gold-set seed
-                        "gold_aspect": "",
-                        "gold_sentiment": "",
                     })
     return pd.DataFrame(rows)
 

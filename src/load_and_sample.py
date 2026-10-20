@@ -2,6 +2,7 @@
 
 import argparse
 import csv
+import html
 import json
 import math
 import random
@@ -17,6 +18,7 @@ DEFAULT_URL = (
     "resolve/main/raw/review_categories/Books.jsonl"
 )
 WHITESPACE = re.compile(r"\s+")
+HTML_TAG = re.compile(r"<[^>]+>")
 
 
 def get_file_size(url: str) -> int:
@@ -44,7 +46,9 @@ def fetch_complete_lines(url: str, start: int, chunk_bytes: int) -> list[bytes]:
 
 
 def clean_text(text: str) -> str:
-    return WHITESPACE.sub(" ", text).strip()
+    unescaped = html.unescape(text).replace("\xa0", " ")
+    without_tags = HTML_TAG.sub(" ", unescaped)
+    return WHITESPACE.sub(" ", without_tags).strip()
 
 
 def sample_reviews(

@@ -2,6 +2,10 @@
 
 Two-stage NLP pipeline on Amazon book reviews: find aspects (plot, pacing, characters, writing style, ending) in each sentence, then classify sentiment per aspect. Compare VADER, TF-IDF+SVM and DistilBERT, and show that aspect-level sentiment is more informative than one score per review.
 
+## Current status
+
+Step 1 is complete as of 2026-10-20. The 20,000-review sample, 20-review preview, row-by-row preview review, finalized annotation rules, and Step 1 outputs are present. Step 2 has not started.
+
 ---
 
 ## 0. Working rules
@@ -24,12 +28,14 @@ Two-stage NLP pipeline on Amazon book reviews: find aspects (plot, pacing, chara
 
 Sentiment labels: `positive`, `negative`, `neutral`.
 
-## 2. Annotation rules (draft, edit and finalize on Day 1 BEFORE looking at model output)
+## 2. Annotation rules
+
+The finalized rules are in `annotation_rules.md`. The initial file was empty and the rules were finalized after the Step 1 predictions were viewed. This chronology limitation must be disclosed in the report. Gold labeling must still be blind.
 
 1. **Neutral** = no opinion: plot recap, factual description, structure ("the final chapter is ten years later").
 2. **Mixed sentence** ("great characters but slow ending") = split into two labels, one per clause.
 3. **Overlap:** "the story dragged" = `pacing` (it is about speed), not `plot`.
-4. **Vague praise** ("Loved this book!") = aspect `none`, sentiment ignored.
+4. **Vague praise** ("Loved this book!") = aspect `none`; leave gold sentiment empty and exclude it from aspect-sentiment scoring.
 5. **Sarcasm:** label what the reviewer means, not the literal words.
 6. **Negation:** "not boring" is positive; "not interesting at all" is negative.
 7. **Shipping, seller, condition:** `none`.
@@ -41,7 +47,7 @@ Sentiment labels: `positive`, `negative`, `neutral`.
 1. Split train/test **by book id**, never by review or sentence (prevents the model memorizing book-specific words).
 2. Keep a **raw** copy (for BERTopic, DistilBERT) and a **cleaned** copy (for LDA, TF-IDF). Never strip negation words.
 3. Weak training labels: stars 4-5 = positive, 1-2 = negative; drop 3-star for training only.
-4. **Random** sample of about 20k reviews, not the first N lines.
+4. **Random** sample of about 20k reviews, not the first N lines. The current loader uses deterministic random byte ranges to avoid downloading the 20.1 GB source. This introduces slight text-length bias and must be disclosed.
 5. All methods are evaluated on the **same hand-labeled gold set**, never used for training or tuning. Tune on a separate dev split.
 6. Report **macro-F1**, per-class results and a confusion matrix, not only accuracy (reviews are mostly positive). Score aspect detection separately from sentiment.
 7. Label the gold set **blind**: the labeling file contains no model predictions.
@@ -54,7 +60,7 @@ Sentiment labels: `positive`, `negative`, `neutral`.
 
 | Day | Manual (you) | Agent (Codex) |
 |---|---|---|
-| 1 | Write `annotation_rules.md` (Section 2) | Step 1: loader, sampler, 20-review run |
+| 1 | Finalize `annotation_rules.md` (Section 2) | Step 1: loader, sampler, 20-review run |
 | 2 | Read all 20 rows, note failures, finalize keywords | Step 2: full run, export labeling file |
 | 3-5 | Hand-label 150-200 sentences (about 3-4 hours total) | Step 3: VADER evaluation script |
 | 6 | Relabel 30 sentences without looking at old labels (self-agreement) | Step 4: TF-IDF + SVM |
@@ -65,15 +71,15 @@ Sentiment labels: `positive`, `negative`, `neutral`.
 
 ## 5. Agent build order (stop for review after each step)
 
-1. **Loader and sampler:** Amazon Reviews 2023, Books category, following the official data-loading guide. Stream, do not download everything. Random sample about 20k; keep text, rating, book id; drop empty and duplicate rows; report counts, rating distribution, reviews per book. Run the existing pipeline on 20 reviews and output a CSV.
-2. **Full run and labeling export:** run on the full sample. Export about 300 random test-book sentences with columns `sentence_id, review_id, sentence, gold_aspect, gold_sentiment` (last two empty, no predictions). Not dominated by one book or one aspect.
-3. **Evaluation script:** VADER on the gold set. Per-aspect table, confusion matrix, macro-F1, aspect-detection accuracy, and **aspect-level vs whole-review sentiment** (the key result).
-4. **TF-IDF + SVM:** `class_weight='balanced'`, trained on weak labels, tested on the gold set.
-5. **Topic models:** LDA (5-10 topics, choose by c_v coherence, cleaned text) and BERTopic with defaults on raw sentences. Export top words per topic to CSV for manual naming. pyLDAvis for LDA.
-6. **DistilBERT:** fine-tune on a 5-10k sentence subset, 1-2 epochs, Colab-ready notebook, same split and gold set.
-7. **Streamlit:** one book dropdown, one aspect-sentiment bar chart, example sentences per bar, number of reviews analysed.
+1. [x] **Loader and sampler:** Amazon Reviews 2023, Books category, following the official data-loading guide. Stream, do not download everything. Random sample about 20k; keep text, rating, book id; drop empty and duplicate rows; report counts, rating distribution, reviews per book. Run the existing pipeline on 20 reviews and output a CSV.
+2. [ ] **Full run and labeling export:** run on the full sample. Export about 300 random test-book annotation units with columns `sentence_id, review_id, sentence, gold_aspect, gold_sentiment` (last two empty, no predictions). A mixed sentence may produce separate clause rows. Do not let one book dominate the file.
+3. [ ] **Evaluation script:** VADER on the gold set. Per-aspect table, confusion matrix, macro-F1, aspect-detection accuracy, and **aspect-level vs whole-review sentiment** (the key result).
+4. [ ] **TF-IDF + SVM:** `class_weight='balanced'`, trained on weak labels, tested on the gold set.
+5. [ ] **Topic models:** LDA (5-10 topics, choose by c_v coherence, cleaned text) and BERTopic with defaults on raw sentences. Export top words per topic to CSV for manual naming. pyLDAvis for LDA.
+6. [ ] **DistilBERT:** fine-tune on a 5-10k sentence subset, 1-2 epochs, Colab-ready notebook, same split and gold set.
+7. [ ] **Streamlit:** one book dropdown, one aspect-sentiment bar chart, example sentences per bar, number of reviews analysed.
 
-Existing files to build on: `day1_pipeline_test.py` (sentence, clause, keyword aspect, VADER), `eval_synthetic.py`. Do not rewrite from scratch. Agent should tell the user before continuing if any instruction looks risky for the evaluation. Include `README.md` with run commands, `requirements.txt`, and a folder layout of `data/`, `outputs/`, `src/`, `notebooks/`.
+Existing files to build on: `day1_pipeline_test.py` (sentence, clause, keyword aspect, VADER), `src/load_and_sample.py`, and the synthetic CSV fixtures. `eval_synthetic.py` is referenced by the original brief but is not currently present. Do not rewrite from scratch. Agent should tell the user before continuing if any instruction looks risky for the evaluation. Keep `README.md`, `requirements.txt`, and the `data/`, `outputs/`, `src/`, `notebooks/` layout current.
 
 ## 6. Known weaknesses to expect (use them in error analysis)
 
@@ -96,9 +102,9 @@ Existing files to build on: `day1_pipeline_test.py` (sentence, clause, keyword a
 
 ## 8. Checklist
 
-- [ ] annotation_rules.md written before looking at output
-- [ ] Agent step 1 output read row by row
-- [ ] Keywords extended from real output
+- [x] `annotation_rules.md` finalized; chronology limitation recorded because predictions were already viewed
+- [x] Agent Step 1 output read row by row
+- [x] Keywords extended from real output
 - [ ] Gold set labeled blind, 150-200 sentences, all classes present
 - [ ] 30 sentences relabeled for self-agreement
 - [ ] All methods scored on the same gold set with macro-F1
