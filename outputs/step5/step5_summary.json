@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "lda_best_k": 10,
+  "lda_best_c_v": 0.5343,
+  "lda_review_count": 13250,
+  "bertopic_available": false,
+  "bertopic_topic_count": 0,
+  "bertopic_sentence_count": 0,
+  "pyldavis_generated": false,
+  "note": "Name topics and map/discard them manually after reviewing the CSVs."
+}

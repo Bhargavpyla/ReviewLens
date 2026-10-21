@@ -14,7 +14,7 @@ Steps 1 through 4 are complete. The project contains:
 - AI reference annotations (`ai_generated_reference`, `human_verified=false`) with exact evidence spans, rationales, and consistency review.
 - Locked keyword-aspect and VADER evaluation results (`outputs/step3/`), including three-class and positive/negative metrics, confusion matrices, and matched aspect-text vs whole-review comparison.
 - Trained TF-IDF + Linear SVM sentiment model (`outputs/step4/` and `models/tfidf_svm_sentiment.joblib`), achieving 0.7849 binary Macro-F1 (85.0% accuracy) on the reference benchmark, outperforming VADER by +0.0678.
-- Step 5 has not started.
+- Step 5 LDA topic modeling was run on train-book review text; BERTopic and pyLDAvis remain skipped because the optional dependencies are not available on this Python 3.14/Windows environment.
 
 
 ## Setup
@@ -146,6 +146,20 @@ Train and evaluate the TF-IDF + Linear SVM sentiment classifier:
 - `outputs/step4/error_analysis.csv`: detailed breakdown of misclassified reference units.
 - `outputs/step4/validation_checks.csv` & `outputs/step4/validation_report.json`: automated checks confirming zero leakage and reproducible seed.
 
+## Step 5 Command
+
+Run the topic-model sweep on train-book reviews (LDA only in this environment, because BERTopic and pyLDAvis are optional and unavailable on the current Python 3.14/Windows setup):
+
+```powershell
+.\.venv\Scripts\python.exe src\topic_models.py --lda-only
+```
+
+## Step 5 Outputs
+
+- `outputs/step5/lda_coherence_sweep.csv`: LDA topic-count sweep with c_v coherence values.
+- `outputs/step5/lda_topic_words.csv`: top words for the selected LDA model.
+- `outputs/step5/lda_topic_distribution.csv` and `lda_topic_mean_probabilities.csv`: document-level topic summaries.
+- `outputs/step5/validation_checks.csv`: run metadata showing the step completed with manual review remaining for topic naming.
 
 ## Sampling & Splitting Methodology
 

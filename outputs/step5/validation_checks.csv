@@ -1,0 +1,7 @@
+check,status,detail
+lda_coherence_sweep,PASS,"Tested k=5-10, best k=10"
+lda_topic_words_exported,PASS,Top-15 words exported for 10 topics
+manual_topic_naming,INFO,Topic aspect/name/junk fields are blank for manual review
+training_books_only,PASS,LDA reviews and BERTopic sentences were filtered to train books
+pyldavis_generated,SKIP,pyLDAvis not available
+bertopic_run,SKIP,BERTopic skipped or unavailable
