@@ -1,0 +1,5 @@
+check,status,detail
+zero_test_leakage_in_training,PASS,Train rows are restricted to train books only.
+reference_evaluation_used,PASS,Evaluation uses the same saved reference benchmark as prior steps.
+balanced_subset,PASS,Balanced subset capped at 5000 training rows.
+binary_sentiment_only,PASS,Positive/negative subset only; neutral units excluded from this training/evaluation setup.

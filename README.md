@@ -157,9 +157,27 @@ Run the topic-model sweep on train-book reviews (LDA only in this environment, b
 ## Step 5 Outputs
 
 - `outputs/step5/lda_coherence_sweep.csv`: LDA topic-count sweep with c_v coherence values.
-- `outputs/step5/lda_topic_words.csv`: top words for the selected LDA model.
+- `outputs/step5/lda_topic_words.csv`: top words for the selected LDA model with manual topic review applied.
 - `outputs/step5/lda_topic_distribution.csv` and `lda_topic_mean_probabilities.csv`: document-level topic summaries.
-- `outputs/step5/validation_checks.csv`: run metadata showing the step completed with manual review remaining for topic naming.
+- `outputs/step5/validation_checks.csv`: run metadata showing the step completed with manual review complete for the exported topic labels.
+
+## Step 6 Command
+
+Train and evaluate the DistilBERT sentiment model on a balanced subset of train-book weak labels:
+
+```powershell
+.\.venv\Scripts\python.exe src\train_distilbert.py --max-train 5000 --epochs 1 --batch-size 16 --output-dir outputs\step6
+```
+
+## Step 6 Results
+
+- Training set: balanced 5,000-row subset from train books only, using weak labels from star ratings 1-2 vs 4-5 and dropping 3-star rows.
+- Reference benchmark evaluation: 20 positive/negative aspect-text units from the saved AI reference set.
+- Accuracy: **0.8500**.
+- Binary Macro-F1: **0.8400**.
+- Positive F1: **0.8800**; Negative F1: **0.8000**.
+- Compared with the locked baselines, DistilBERT improves on VADER by +0.1229 macro-F1 and also exceeds the TF-IDF + LinearSVC baseline by +0.0551 macro-F1 on this benchmark subset.
+- Outputs are stored under `outputs/step6/` and include `overall_metrics.csv`, `comparison_with_baselines.csv`, `per_class_metrics.csv`, `confusion_matrix.csv`, `predictions_reference.csv`, and `validation_checks.csv`.
 
 ## Sampling & Splitting Methodology
 

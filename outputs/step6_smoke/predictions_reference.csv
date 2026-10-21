@@ -1,0 +1,21 @@
+unit_id,book_id,aspect,sentiment,text,pred_sentiment,label
+unit_005,B00NSWX5Z4,characters,positive,I really want to follow Abby and Ned as long as it takes.,positive,1
+unit_013,B002KQ6BT6,plot,negative,And did this book need drones which often appeared,positive,0
+unit_014,B08L7YSP9S,writing_style,positive,great writer,positive,1
+unit_029,1442499214,ending,negative,What I didn't like about the book was that it told two stories in parallel - the one of the boy and the one of the wolf and raven that were compelling up to the end,negative,0
+unit_052,1640638954,plot,positive,"I enjoyed the story, little teen romance and the ending has me on the edge wanting to know more.",positive,1
+unit_054,1523799943,characters,positive,I enjoyed getting to know Will and Maeve and the many characters that Tony Lyttle created to convey the conflicts that were so dominant at that time.,positive,1
+unit_078,0307474712,plot,positive,It's certainly a clever premise to revisit the same day year after year,positive,1
+unit_080,0674057422,plot,positive,"Well, the only",positive,1
+unit_090,0997885602,ending,positive,I would love an epilogue,positive,1
+unit_109,B00O7X62I0,writing_style,positive,I have read so many historical novels and none can compare to how well this was written.,positive,1
+unit_200,B00M46CPXS,characters,negative,"The only negative I have is that there were parts of Alex's character that were nor written as well as I feel they could have been, including some choices he makes that did not have much insight into why he made those choices.",positive,0
+unit_202,B0756F453K,characters,negative,Not entirely convinced that the Marvel approach to character deaths is a good development,positive,0
+unit_210,0425237346,plot,positive,a good mystery nontheless.,positive,1
+unit_214,0945134398,characters,positive,"Very good reading, a bit hard to follow at times as there are many characters.",positive,1
+unit_222,1401224628,pacing,positive,For me it's still worth a quick read based on the artwork alone [I'm also a sucker for supernatural western stuff],positive,1
+unit_241,B01LZ50BHX,pacing,positive,Fast paced and fun.,positive,1
+unit_246,0307352145,writing_style,positive,Well written book in an area largely ignored.,negative,1
+unit_265,B000FC14AI,plot,positive,"Part Carlos Castaneda, part Chinatown, uniquely tied together from three narratives that suspense-fully build to a brain tingly wonder of what is truly real in this and other worlds.",positive,1
+unit_280,1902578082,writing_style,negative,Lots of grammatical errors and typos,positive,0
+unit_290,1416987290,plot,negative,"I just COULDN'T GET into the story AT ALL, especially when AT LEAST A THIRD of the novel was WRITTEN IN CAPS as if the main character was SCREAMING BLAND DETAILS AT ME.",negative,0

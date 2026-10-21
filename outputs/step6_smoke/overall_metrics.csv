@@ -1,0 +1,10 @@
+metric,value
+evaluated_units,20.0
+accuracy,0.75
+macro_f1,0.6416
+vader_macro_f1,0.7171
+svm_macro_f1,0.7849
+f1_delta_over_vader,-0.0755
+train_rows,200.0
+max_train,200.0
+epochs,1.0

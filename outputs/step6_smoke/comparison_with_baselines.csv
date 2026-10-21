@@ -1,0 +1,4 @@
+model,scope,accuracy,macro_f1,positive_f1,negative_f1
+VADER Baseline,aspect_text,0.6364,0.7171,0.72,0.7143
+TF-IDF + LinearSVC,aspect_text,0.85,0.7849,0.9032,0.6667
+DistilBERT,aspect_text,0.75,0.6416,0.8387,0.4444

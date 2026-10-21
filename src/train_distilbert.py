@@ -130,8 +130,8 @@ def train_distilbert(
     tokenized_eval = eval_ds.map(tokenize_fn, batched=True, batch_size=8)
     tokenized_train = tokenized_train.rename_column("label", "labels")
     tokenized_eval = tokenized_eval.rename_column("label", "labels")
-    tokenized_train = tokenized_train.remove_columns(["text"])
-    tokenized_eval = tokenized_eval.remove_columns(["text"])
+    tokenized_train.set_format("torch", columns=["input_ids", "attention_mask", "labels"])
+    tokenized_eval.set_format("torch", columns=["input_ids", "attention_mask", "labels"])
 
     model = AutoModelForSequenceClassification.from_pretrained(
         model_name,
